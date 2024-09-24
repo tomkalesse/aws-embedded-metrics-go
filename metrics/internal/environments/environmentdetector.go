@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/tomkalesse/aws-embedded-metrics-go/metrics/internal/config"
+	"github.com/tomkalesse/aws-embedded-metrics-go/metrics/internal/utils"
 )
 
 var (
@@ -26,15 +27,15 @@ var once sync.Once
 
 func getEnvironmentFromOverride() Environment {
 	switch config.EnvironmentConfig.EnvironmentOverride {
-	case Agent:
+	case utils.Agent:
 		return defaultEnvironment
-	case EC2:
+	case utils.EC2:
 		return ec2Environment
-	case Lambda:
+	case utils.Lambda:
 		return lambdaEnvironment
-	case ECS:
+	case utils.ECS:
 		return ecsEnvironment
-	case Local:
+	case utils.Local:
 		return localEnvironment
 	default:
 		return nil

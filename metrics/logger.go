@@ -2,12 +2,16 @@ package metrics
 
 import (
 	"log"
+	"log/slog"
+	"os"
 
 	"github.com/tomkalesse/aws-embedded-metrics-go/metrics/internal/config"
 	"github.com/tomkalesse/aws-embedded-metrics-go/metrics/internal/context"
 	"github.com/tomkalesse/aws-embedded-metrics-go/metrics/internal/environments"
 	"github.com/tomkalesse/aws-embedded-metrics-go/metrics/internal/utils"
 )
+
+var slogger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 type MetricsLogger struct {
 	context                 context.MetricsContext
@@ -19,7 +23,7 @@ func CreateMetricsLogger() MetricsLogger {
 	context := context.Empty()
 	environment, err := environments.ResolveEnvironment()
 	if err != nil {
-		log.Printf("Error resolving environment: %v", err)
+		log.Println("Error resolving environment: " + err.Error())
 	}
 	return MetricsLogger{context, environment, true}
 }
@@ -27,7 +31,8 @@ func CreateMetricsLogger() MetricsLogger {
 func (l *MetricsLogger) Flush() {
 	environment, err := environments.ResolveEnvironment()
 	if err != nil {
-		log.Printf("Error resolving environment: %v", err)
+		msg := "Error resolving environment: " + err.Error()
+		slogger.Error(msg)
 	}
 	l.configureContextForEnvironment(&l.context, environment)
 	sink := environment.GetSink()
@@ -53,9 +58,15 @@ func (l *MetricsLogger) SetDimensions(dimensionSetOrSets interface{}, useDefault
 
 	switch v := dimensionSetOrSets.(type) {
 	case []map[string]string:
-		l.context.SetDimensions(v, defaultValue)
+		err := l.context.SetDimensions(v, defaultValue)
+		if err != nil {
+			slogger.Error(err.Error())
+		}
 	case map[string]string:
-		l.context.SetDimensions([]map[string]string{v}, defaultValue)
+		err := l.context.SetDimensions([]map[string]string{v}, defaultValue)
+		if err != nil {
+			slogger.Error(err.Error())
+		}
 	default:
 		log.Println("Invalid type for dimensionSetOrSets")
 	}
@@ -68,7 +79,10 @@ func (l *MetricsLogger) ResetDimensions(useDefault bool) MetricsLogger {
 }
 
 func (l *MetricsLogger) PutMetric(key string, value float64, unit utils.Unit, storageResolution utils.StorageResolution) MetricsLogger {
-	l.context.PutMetric(key, value, unit, storageResolution)
+	err := l.context.PutMetric(key, value, unit, storageResolution)
+	if err != nil {
+		slogger.Error(err.Error())
+	}
 	return *l
 }
 
@@ -86,7 +100,7 @@ func (l *MetricsLogger) New() *MetricsLogger {
 	m := context.MetricsContext{}
 	environment, err := environments.ResolveEnvironment()
 	if err != nil {
-		log.Printf("Error resolving environment: %v", err)
+		log.Println("Error resolving environment: " + err.Error())
 	}
 	return &MetricsLogger{m.CreateCopyWithContext(true), environment, true}
 }

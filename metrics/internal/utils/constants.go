@@ -67,3 +67,16 @@ const (
 )
 
 var Units = []Unit{Seconds, Microseconds, Milliseconds, Bytes, Kilobytes, Megabytes, Gigabytes, Terabytes, Bits, Kilobits, Megabits, Gigabits, Terabits, Percent, Count, BytesPerSecond, KilobytesPerSecond, MegabytesPerSecond, GigabytesPerSecond, TerabytesPerSecond, BitsPerSecond, KilobitsPerSecond, MegabitsPerSecond, GigabitsPerSecond, TerabitsPerSecond, CountPerSecond, None}
+
+type Environment string
+
+const (
+	Local   Environment = "Local"
+	Lambda  Environment = "Lambda"
+	Agent   Environment = "Agent"
+	EC2     Environment = "EC2"
+	ECS     Environment = "ECS"
+	Unknown Environment = "Unknown"
+)
+
+var Environments = []Environment{Local, Lambda, Agent, EC2, ECS, Unknown}

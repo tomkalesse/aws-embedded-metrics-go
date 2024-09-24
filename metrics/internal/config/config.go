@@ -1,6 +1,10 @@
 package config
 
-import "os"
+import (
+	"os"
+
+	"github.com/tomkalesse/aws-embedded-metrics-go/metrics/internal/utils"
+)
 
 const (
 	ENV_VAR_PREFIX             = "AWS_EMF"
@@ -49,7 +53,7 @@ type Config struct {
 	LogGroupName            string
 	LogStreamName           string
 	AgentEndpoint           string
-	EnvironmentOverride     string
+	EnvironmentOverride     utils.Environment
 	Namespace               string
 }
 
@@ -60,8 +64,22 @@ var EnvironmentConfig = Config{
 	LogGroupName:            getEnvVar(ConfigKeys.LOG_GROUP_NAME),
 	LogStreamName:           getEnvVar(ConfigKeys.LOG_STREAM_NAME),
 	AgentEndpoint:           getEnvVar(ConfigKeys.AGENT_ENDPOINT),
-	EnvironmentOverride:     getEnvVar(ConfigKeys.ENVIRONMENT_OVERRIDE),
+	EnvironmentOverride:     getEnvironmentFromOverride(ConfigKeys.ENVIRONMENT_OVERRIDE),
 	Namespace:               getNamespace(ConfigKeys.NAMESPACE),
+}
+
+func GetConfig() Config {
+	EnvironmentConfig = Config{
+		DebuggingLoggingEnabled: tryGetEnvVariableAsBoolean(ConfigKeys.ENABLE_DEBUG_LOGGING, false),
+		ServiceName:             getEnvVar(ConfigKeys.SERVICE_NAME),
+		ServiceType:             getEnvVar(ConfigKeys.SERVICE_TYPE),
+		LogGroupName:            getEnvVar(ConfigKeys.LOG_GROUP_NAME),
+		LogStreamName:           getEnvVar(ConfigKeys.LOG_STREAM_NAME),
+		AgentEndpoint:           getEnvVar(ConfigKeys.AGENT_ENDPOINT),
+		EnvironmentOverride:     getEnvironmentFromOverride(ConfigKeys.ENVIRONMENT_OVERRIDE),
+		Namespace:               getNamespace(ConfigKeys.NAMESPACE),
+	}
+	return EnvironmentConfig
 }
 
 func getEnvVar(key string) string {
@@ -72,10 +90,11 @@ func getEnvVar(key string) string {
 }
 
 func getNamespace(key string) string {
-	if os.Getenv(key) == "" {
+	value := getEnvVar(key)
+	if value == "" {
 		return DEFAULT_NAMESPACE
 	}
-	return os.Getenv(key)
+	return value
 }
 
 func tryGetEnvVariableAsBoolean(key string, fallback bool) bool {
@@ -83,5 +102,23 @@ func tryGetEnvVariableAsBoolean(key string, fallback bool) bool {
 	if value == "" {
 		return fallback
 	}
-	return value == "true"
+	return value == "true" || value == "TRUE"
+}
+
+func getEnvironmentFromOverride(key string) utils.Environment {
+	value := getEnvVar(key)
+	switch value {
+	case string(utils.Agent):
+		return utils.Agent
+	case string(utils.EC2):
+		return utils.EC2
+	case string(utils.Lambda):
+		return utils.Lambda
+	case string(utils.ECS):
+		return utils.ECS
+	case string(utils.Local):
+		return utils.Local
+	default:
+		return utils.Unknown
+	}
 }

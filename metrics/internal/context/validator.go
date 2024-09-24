@@ -71,7 +71,7 @@ func validateMetric(key string, unit utils.Unit, storageResolution utils.Storage
 	if storageResolution == 0 || !isValidStorageResolution(storageResolution) {
 		return errors.New("metric storage resolution " + strconv.Itoa(int(storageResolution)) + " is not a valid")
 	}
-	if metricNameAndResolutionMap[key] != storageResolution {
+	if metricNameAndResolutionMap[key] != 0 && metricNameAndResolutionMap[key] != storageResolution {
 		return errors.New("resolution for metrics " + key + " is already set. A single log event cannot have a metric with two different resolutions.")
 	}
 
