@@ -34,3 +34,7 @@ func (s *ConsoleSink) Accept(context *context.MetricsContext) error {
 func (s *ConsoleSink) Name() string {
 	return s.name
 }
+
+func (s *ConsoleSink) LogGroupName() string {
+	return ""
+}

@@ -30,9 +30,9 @@ func (e *DefaultEnvironment) GetType() string {
 
 func (e *DefaultEnvironment) GetLogGroupName() string {
 	if config.EnvironmentConfig.LogGroupName == "" {
-		return ""
+		return e.GetName() + "-metrics"
 	}
-	return e.GetName() + "-metrics"
+	return config.EnvironmentConfig.LogGroupName
 }
 
 func (e *DefaultEnvironment) ConfigureContext(ctx *context.MetricsContext) {

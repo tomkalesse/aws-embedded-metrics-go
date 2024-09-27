@@ -32,8 +32,8 @@ type AgentSink struct {
 	name          string
 	Serializer    serializers.Serializer
 	Endpoint      Endpoint
-	LogGroupName  string
-	LogStreamName string
+	logGroupName  string
+	logStreamName string
 	SocketClient  SocketClient
 	mutex         sync.Mutex
 }
@@ -71,8 +71,8 @@ func NewAgentSink(logGroupName, logStreamName string, serializer serializers.Ser
 
 	sink := &AgentSink{
 		name:          "AgentSink",
-		LogGroupName:  logGroupName,
-		LogStreamName: logStreamName,
+		logGroupName:  logGroupName,
+		logStreamName: logStreamName,
 		Serializer:    serializer,
 		Endpoint:      endpoint,
 		SocketClient:  getSocketClient(endpoint),
@@ -86,11 +86,11 @@ func (s *AgentSink) Accept(context *context.MetricsContext) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	if s.LogGroupName != "" {
-		context.Meta["LogGroupName"] = s.LogGroupName
+	if s.logGroupName != "" {
+		context.Meta["LogGroupName"] = s.logGroupName
 	}
-	if s.LogStreamName != "" {
-		context.Meta["LogStreamName"] = s.LogStreamName
+	if s.logStreamName != "" {
+		context.Meta["LogStreamName"] = s.logStreamName
 	}
 
 	events := s.Serializer.Serialize(context)
@@ -109,6 +109,10 @@ func (s *AgentSink) Accept(context *context.MetricsContext) error {
 
 func (s *AgentSink) Name() string {
 	return s.name
+}
+
+func (s *AgentSink) LogGroupName() string {
+	return s.logGroupName
 }
 
 func getSocketClient(endpoint Endpoint) SocketClient {
