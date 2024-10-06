@@ -2,7 +2,9 @@ package context
 
 import (
 	"log"
+	"time"
 
+	"github.com/tomkalesse/aws-embedded-metrics-go/metrics/internal/config"
 	"github.com/tomkalesse/aws-embedded-metrics-go/metrics/internal/utils"
 )
 
@@ -10,12 +12,12 @@ type MetricsContext struct {
 	Namespace                  string
 	Properties                 map[string]string
 	Metrics                    map[string]MetricsValue
-	Meta                       map[string]string
-	Dimensions                 []map[string]string
-	DefaultDimensions          map[string]string
-	ShouldUseDefaultDimensions bool
-	Timestamp                  int64
-	MetricNameAndResolutionMap map[string]utils.StorageResolution
+	Meta                       map[string]any
+	dimensions                 []map[string]string
+	defaultDimensions          map[string]string
+	shouldUseDefaultDimensions bool
+	timestamp                  int64
+	metricNameAndResolutionMap map[string]utils.StorageResolution
 }
 
 type MetricsValue struct {
@@ -30,13 +32,14 @@ func (m *MetricsValue) addValue(value float64) {
 
 func Empty() MetricsContext {
 	return MetricsContext{
-		Namespace:                  "",
+		Namespace:                  config.GetConfig().Namespace,
 		Properties:                 make(map[string]string),
 		Metrics:                    make(map[string]MetricsValue),
-		Meta:                       make(map[string]string),
-		Dimensions:                 make([]map[string]string, 0),
-		Timestamp:                  0,
-		MetricNameAndResolutionMap: make(map[string]utils.StorageResolution),
+		Meta:                       map[string]any{"Timestamp": resolveMetaTimestamp(0)},
+		dimensions:                 make([]map[string]string, 0),
+		shouldUseDefaultDimensions: true,
+		timestamp:                  0,
+		metricNameAndResolutionMap: make(map[string]utils.StorageResolution),
 	}
 }
 
@@ -55,13 +58,19 @@ func (m *MetricsContext) SetProperty(key string, value string) {
 	m.Properties[key] = value
 }
 
-func (m *MetricsContext) SetTimestamp(timestamp int64) {
-	m.Timestamp = timestamp
+func (m *MetricsContext) SetTimestamp(timestamp int64) error {
+	err := validateTimestamp(timestamp)
+	if err != nil {
+		return err
+	}
+	m.timestamp = timestamp
+	m.Meta["Timestamp"] = resolveMetaTimestamp(timestamp)
+	return nil
 }
 
 func (m *MetricsContext) SetDefaultDimensions(dimensions map[string]string) {
 	log.Println("Received default dimensions")
-	m.DefaultDimensions = dimensions
+	m.defaultDimensions = dimensions
 }
 
 func (m *MetricsContext) PutDimensions(incomingDimensionSet map[string]string) error {
@@ -70,64 +79,78 @@ func (m *MetricsContext) PutDimensions(incomingDimensionSet map[string]string) e
 		return err
 	}
 
-	incomingDimensionSetKeys := getMapKeys(incomingDimensionSet)
+	incomingDimensionSetKeys := utils.GetMapKeys(incomingDimensionSet)
 
 	var filteredDimensions []map[string]string
-	for _, existingDimensionSet := range m.Dimensions {
-		existingDimensionSetKeys := getMapKeys(existingDimensionSet)
+	for _, existingDimensionSet := range m.dimensions {
+		existingDimensionSetKeys := utils.GetMapKeys(existingDimensionSet)
 
 		if len(existingDimensionSetKeys) != len(incomingDimensionSetKeys) ||
-			!areSlicesEqual(existingDimensionSetKeys, incomingDimensionSetKeys) {
+			!utils.AreSlicesEqual(existingDimensionSetKeys, incomingDimensionSetKeys) {
 			filteredDimensions = append(filteredDimensions, existingDimensionSet)
 		}
 	}
 
-	m.Dimensions = append(filteredDimensions, incomingDimensionSet)
+	m.dimensions = append(filteredDimensions, incomingDimensionSet)
 
 	return nil
 
 }
 
-func (m *MetricsContext) SetDimensions(dimensionSets []map[string]string, useDefault bool) error {
+func (m *MetricsContext) SetDimensions(dimensionSets []map[string]string, useDefault ...bool) error {
+
+	use := false
+	if len(useDefault) > 0 {
+		use = useDefault[0]
+	}
+
 	for _, dimensionSet := range dimensionSets {
 		err := validateDimensionSet(dimensionSet)
 		if err != nil {
 			return err
 		}
 	}
-	m.ShouldUseDefaultDimensions = useDefault
-	m.Dimensions = dimensionSets
+	m.shouldUseDefaultDimensions = use
+	m.dimensions = dimensionSets
 	return nil
 }
 
 func (m *MetricsContext) ResetDimensions(useDefault bool) {
-	m.ShouldUseDefaultDimensions = useDefault
-	m.Dimensions = make([]map[string]string, 0)
+	m.shouldUseDefaultDimensions = useDefault
+	m.dimensions = make([]map[string]string, 0)
 }
 
 func (m *MetricsContext) GetDimensions() []map[string]string {
-	if !m.ShouldUseDefaultDimensions {
-		return m.Dimensions
+	if !m.shouldUseDefaultDimensions {
+		return m.dimensions
 	}
 
-	if len(m.DefaultDimensions) == 0 {
-		return m.Dimensions
+	if len(m.defaultDimensions) == 0 {
+		return m.dimensions
 	}
 
-	if len(m.Dimensions) == 0 {
-		return []map[string]string{m.DefaultDimensions}
+	if len(m.dimensions) == 0 {
+		return []map[string]string{m.defaultDimensions}
 	}
 
-	mergedDimensions := make([]map[string]string, len(m.Dimensions))
-	for _, customDimension := range m.Dimensions {
-		mergedDimensions = append(mergedDimensions, mergeMaps(m.DefaultDimensions, customDimension))
+	mergedDimensions := make([]map[string]string, 0)
+	for _, customDimension := range m.dimensions {
+		m := utils.MergeMaps(m.defaultDimensions, customDimension)
+		if m == nil {
+			log.Println("Merged dimensions are empty")
+		}
+		mergedDimensions = append(mergedDimensions, m.(map[string]string))
 	}
-
 	return mergedDimensions
 }
 
-func (m *MetricsContext) PutMetric(key string, value float64, unit utils.Unit, storageResolution utils.StorageResolution) error {
-	err := validateMetric(key, unit, storageResolution, m.MetricNameAndResolutionMap)
+func (m *MetricsContext) PutMetric(key string, value float64, unit utils.Unit, storageResolution ...utils.StorageResolution) error {
+	sR := utils.Standard
+	if len(storageResolution) >= 1 {
+		sR = storageResolution[0]
+	}
+
+	err := validateMetric(key, unit, sR, m.metricNameAndResolutionMap)
 	if err != nil {
 		return err
 	}
@@ -138,58 +161,36 @@ func (m *MetricsContext) PutMetric(key string, value float64, unit utils.Unit, s
 		m.Metrics[key] = MetricsValue{
 			Values:            []float64{value},
 			Unit:              unit,
-			StorageResolution: storageResolution,
+			StorageResolution: sR,
 		}
 	}
-	m.MetricNameAndResolutionMap[key] = storageResolution
+	m.metricNameAndResolutionMap[key] = sR
 	return nil
 }
 
-func (m *MetricsContext) CreateCopyWithContext(preserveDimensions bool) MetricsContext {
+func (m *MetricsContext) CreateCopyWithContext(preserveDimensions ...bool) MetricsContext {
+
+	pD := true
+	if len(preserveDimensions) > 0 {
+		pD = preserveDimensions[0]
+	}
+
 	return MetricsContext{
 		Namespace:                  m.Namespace,
 		Properties:                 m.Properties,
-		Dimensions:                 m.Dimensions,
-		DefaultDimensions:          m.DefaultDimensions,
-		ShouldUseDefaultDimensions: preserveDimensions,
-		Timestamp:                  m.Timestamp,
+		Metrics:                    m.Metrics,
+		Meta:                       m.Meta,
+		dimensions:                 m.dimensions,
+		defaultDimensions:          m.defaultDimensions,
+		shouldUseDefaultDimensions: pD,
+		timestamp:                  m.timestamp,
+		metricNameAndResolutionMap: m.metricNameAndResolutionMap,
 	}
 }
 
-func getMapKeys(dimensionSet map[string]string) []string {
-	keys := make([]string, 0, len(dimensionSet))
-	for key := range dimensionSet {
-		keys = append(keys, key)
+func resolveMetaTimestamp(timestamp int64) int64 {
+	if timestamp == 0 {
+		return time.Now().Unix()
 	}
-	return keys
-}
-
-func areSlicesEqual(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	aMap := make(map[string]bool)
-	for _, item := range a {
-		aMap[item] = true
-	}
-	for _, item := range b {
-		if !aMap[item] {
-			return false
-		}
-	}
-	return true
-}
-
-func mergeMaps(defaults, custom map[string]string) map[string]string {
-	merged := make(map[string]string)
-
-	for key, value := range defaults {
-		merged[key] = value
-	}
-
-	for key, value := range custom {
-		merged[key] = value
-	}
-
-	return merged
+	return timestamp
 }

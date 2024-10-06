@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/tomkalesse/aws-embedded-metrics-go/metrics/internal/utils"
 )
@@ -68,9 +69,6 @@ func validateMetric(key string, unit utils.Unit, storageResolution utils.Storage
 	if unit == "" || !isValidUnit(unit) {
 		return errors.New("metric unit " + string(unit) + " is not a valid")
 	}
-	if storageResolution == 0 || !isValidStorageResolution(storageResolution) {
-		return errors.New("metric storage resolution " + strconv.Itoa(int(storageResolution)) + " is not a valid")
-	}
 	if metricNameAndResolutionMap[key] != 0 && metricNameAndResolutionMap[key] != storageResolution {
 		return errors.New("resolution for metrics " + key + " is already set. A single log event cannot have a metric with two different resolutions.")
 	}
@@ -87,11 +85,29 @@ func isValidUnit(unit utils.Unit) bool {
 	return false
 }
 
-func isValidStorageResolution(resolution utils.StorageResolution) bool {
-	for _, r := range utils.StorageResolutions {
-		if r == resolution {
-			return true
-		}
+/*
+ *	func isValidStorageResolution(resolution utils.StorageResolution) bool {
+ *		for _, r := range utils.StorageResolutions {
+ *			if r == resolution {
+ *				return true
+ *			}
+ *		}
+ *		return false
+ *	}
+ */
+
+func validateTimestamp(timestamp int64) error {
+	t := time.Unix(timestamp, 0)
+	now := time.Now()
+
+	// Check if the timestamp is too far in the past.
+	if t.Before(now.Add(-utils.MAX_TIMESTAMP_PAST_AGE)) {
+		return errors.New("timestamp too far in the past")
 	}
-	return false
+
+	// Check if the timestamp is too far in the future.
+	if t.After(now.Add(utils.MAX_TIMESTAMP_FUTURE_AGE)) {
+		return errors.New("timestamp too far in the future")
+	}
+	return nil
 }
