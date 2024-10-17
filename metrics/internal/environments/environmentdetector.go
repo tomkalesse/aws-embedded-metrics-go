@@ -26,7 +26,8 @@ var environment Environment
 var once sync.Once
 
 func getEnvironmentFromOverride() Environment {
-	switch config.EnvironmentConfig.EnvironmentOverride {
+	env := config.GetConfig()
+	switch env.EnvironmentOverride {
 	case utils.Agent:
 		return defaultEnvironment
 	case utils.EC2:
@@ -59,13 +60,14 @@ func discoverEnvironment() (Environment, error) {
 func ResolveEnvironment() (Environment, error) {
 	once.Do(func() {
 		log.Println("Resolving environment")
-		if config.EnvironmentConfig.EnvironmentOverride != "" {
-			log.Printf("Environment override supplied: %s", config.EnvironmentConfig.EnvironmentOverride)
+		env := config.GetConfig()
+		if env.EnvironmentOverride != "" {
+			log.Printf("Environment override supplied: %s", env.EnvironmentOverride)
 			environment = getEnvironmentFromOverride()
 			if environment != nil {
 				return
 			}
-			log.Printf("Invalid environment provided. Falling back to auto-discovery: %s", config.EnvironmentConfig.EnvironmentOverride)
+			log.Printf("Invalid environment provided. Falling back to auto-discovery: %s", env.EnvironmentOverride)
 		}
 
 		var err error

@@ -24,6 +24,18 @@ func AreSlicesEqual(a, b []string) bool {
 	return true
 }
 
+func AreArraysEqual(a, b []float64) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
 func ToMapInterface(dimensionSet map[string]string) map[string]interface{} {
 	interfaceMap := make(map[string]interface{})
 	for key, value := range dimensionSet {
@@ -47,7 +59,7 @@ func MergeMaps(defaults, custom interface{}) interface{} {
 		return mergedInterface
 	case map[string]string:
 		for key, value := range d {
-			mergedInterface[key] = value
+			mergedString[key] = value
 		}
 		for key, value := range custom.(map[string]string) {
 			mergedString[key] = value

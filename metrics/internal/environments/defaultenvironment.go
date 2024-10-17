@@ -15,24 +15,27 @@ func (e *DefaultEnvironment) Probe() bool {
 }
 
 func (e *DefaultEnvironment) GetName() string {
-	if config.EnvironmentConfig.ServiceName == "" {
+	env := config.GetConfig()
+	if env.ServiceName == "" {
 		return "Unknown"
 	}
-	return config.EnvironmentConfig.ServiceName
+	return env.ServiceName
 }
 
 func (e *DefaultEnvironment) GetType() string {
-	if config.EnvironmentConfig.ServiceType == "" {
+	env := config.GetConfig()
+	if env.ServiceType == "" {
 		return "Unknown"
 	}
-	return config.EnvironmentConfig.ServiceType
+	return env.ServiceType
 }
 
 func (e *DefaultEnvironment) GetLogGroupName() string {
-	if config.EnvironmentConfig.LogGroupName == "" {
+	env := config.GetConfig()
+	if env.LogGroupName == "" {
 		return e.GetName() + "-metrics"
 	}
-	return config.EnvironmentConfig.LogGroupName
+	return env.LogGroupName
 }
 
 func (e *DefaultEnvironment) ConfigureContext(ctx *context.MetricsContext) {
@@ -40,8 +43,9 @@ func (e *DefaultEnvironment) ConfigureContext(ctx *context.MetricsContext) {
 }
 
 func (e *DefaultEnvironment) GetSink() sinks.Sink {
+	env := config.GetConfig()
 	if e.sink == nil {
-		e.sink = sinks.NewAgentSink(e.GetLogGroupName(), config.EnvironmentConfig.LogStreamName, nil)
+		e.sink = sinks.NewAgentSink(e.GetLogGroupName(), env.LogStreamName)
 	}
 	return e.sink
 }

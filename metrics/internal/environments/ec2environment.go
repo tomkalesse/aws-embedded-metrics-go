@@ -107,11 +107,12 @@ func (e *EC2Environment) fetchMetadata(token string) (*EC2MetadataResponse, erro
 
 // GetName returns the service name or "Unknown" if not configured.
 func (e *EC2Environment) GetName() string {
-	if config.EnvironmentConfig.ServiceName == "" {
+	env := config.GetConfig()
+	if env.ServiceName == "" {
 		log.Println("Unknown ServiceName.")
 		return "Unknown"
 	}
-	return config.EnvironmentConfig.ServiceName
+	return env.ServiceName
 }
 
 // GetType returns the environment type, which is 'AWS::EC2::Instance' if metadata is available.
@@ -124,8 +125,9 @@ func (e *EC2Environment) GetType() string {
 
 // GetLogGroupName returns the log group name.
 func (e *EC2Environment) GetLogGroupName() string {
-	if config.EnvironmentConfig.LogGroupName != "" {
-		return config.EnvironmentConfig.LogGroupName
+	env := config.GetConfig()
+	if env.LogGroupName != "" {
+		return env.LogGroupName
 	}
 	return fmt.Sprintf("%s-metrics", e.GetName())
 }
@@ -143,8 +145,9 @@ func (e *EC2Environment) ConfigureContext(ctx *context.MetricsContext) {
 
 // GetSink returns the sink for the EC2 environment.
 func (e *EC2Environment) GetSink() sinks.Sink {
+	env := config.GetConfig()
 	if e.sink == nil {
-		e.sink = sinks.NewAgentSink(e.GetLogGroupName(), config.EnvironmentConfig.LogStreamName, nil)
+		e.sink = sinks.NewAgentSink(e.GetLogGroupName(), env.LogStreamName)
 	}
 	return e.sink
 }

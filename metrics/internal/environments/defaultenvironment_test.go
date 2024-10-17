@@ -1,9 +1,8 @@
 package environments
 
 import (
+	"os"
 	"testing"
-
-	"github.com/tomkalesse/aws-embedded-metrics-go/metrics/internal/config"
 )
 
 func TestDefaultEnvironmentProbe(t *testing.T) {
@@ -39,7 +38,7 @@ func TestDefaultEnvironmentGetType(t *testing.T) {
 func TestDefaultEnvironmentSetName(t *testing.T) {
 
 	expectedValue := "testName"
-	config.EnvironmentConfig.ServiceName = expectedValue
+	os.Setenv("SERVICE_NAME", expectedValue)
 	env := &DefaultEnvironment{}
 	result := env.GetName()
 
@@ -51,7 +50,7 @@ func TestDefaultEnvironmentSetName(t *testing.T) {
 func TestDefaultEnvironmentSetType(t *testing.T) {
 
 	expectedValue := "testType"
-	config.EnvironmentConfig.ServiceType = expectedValue
+	os.Setenv("SERVICE_TYPE", expectedValue)
 	env := &DefaultEnvironment{}
 	result := env.GetType()
 
@@ -63,7 +62,7 @@ func TestDefaultEnvironmentSetType(t *testing.T) {
 func TestDefaultEnvironmentSetLogGroupName(t *testing.T) {
 
 	expectedValue := "testLogGroup"
-	config.EnvironmentConfig.LogGroupName = expectedValue
+	os.Setenv("LOG_GROUP_NAME", expectedValue)
 	env := &DefaultEnvironment{}
 	result := env.GetLogGroupName()
 
@@ -76,7 +75,8 @@ func TestDefaultEnvironmentGetLogGroupName(t *testing.T) {
 
 	expectedValue := "testName-metrics"
 	serviceName := "testName"
-	config.EnvironmentConfig.ServiceName = serviceName
+	os.Setenv("LOG_GROUP_NAME", "")
+	os.Setenv("SERVICE_NAME", serviceName)
 	env := &DefaultEnvironment{}
 	result := env.GetLogGroupName()
 
@@ -101,7 +101,8 @@ func TestDefaultEnvironmentGetSinkLogGroupName(t *testing.T) {
 	env := &DefaultEnvironment{}
 	expectedValue := "testName-metrics"
 	serviceName := "testName"
-	config.EnvironmentConfig.ServiceName = serviceName
+	os.Setenv("LOG_GROUP_NAME", "")
+	os.Setenv("SERVICE_NAME", serviceName)
 	sink := env.GetSink()
 
 	if sink.LogGroupName() != expectedValue {

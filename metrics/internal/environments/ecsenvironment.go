@@ -67,9 +67,10 @@ func (e *ECSEnvironment) Probe() bool {
 	}
 
 	fluentHost := os.Getenv("FLUENT_HOST")
-	if fluentHost != "" && config.EnvironmentConfig.AgentEndpoint == "" {
+	env := config.GetConfig()
+	if fluentHost != "" && env.AgentEndpoint == "" {
 		e.fluentBitEndpoint = fmt.Sprintf("tcp://%s:%d", fluentHost, 25888)
-		config.EnvironmentConfig.AgentEndpoint = e.fluentBitEndpoint
+		env.AgentEndpoint = e.fluentBitEndpoint
 		fmt.Printf("Using FluentBit configuration. Endpoint: %s\n", e.fluentBitEndpoint)
 	}
 
@@ -100,8 +101,9 @@ func (e *ECSEnvironment) Probe() bool {
 }
 
 func (e *ECSEnvironment) GetName() string {
-	if config.EnvironmentConfig.ServiceName != "" {
-		return config.EnvironmentConfig.ServiceName
+	env := config.GetConfig()
+	if env.ServiceName != "" {
+		return env.ServiceName
 	}
 
 	if e.metadata != nil && e.metadata.FormattedImageName != "" {
@@ -115,18 +117,20 @@ func (e *ECSEnvironment) GetType() string {
 }
 
 func (e *ECSEnvironment) GetLogGroupName() string {
+	env := config.GetConfig()
 	if e.fluentBitEndpoint != "" {
 		return ""
 	}
 
-	if config.EnvironmentConfig.LogGroupName != "" {
-		return config.EnvironmentConfig.LogGroupName
+	if env.LogGroupName != "" {
+		return env.LogGroupName
 	}
 
 	return e.GetName()
 }
 
 func (e *ECSEnvironment) ConfigureContext(ctx *context.MetricsContext) {
+	env := config.GetConfig()
 	hostname, err := os.Hostname()
 	if err != nil {
 		panic(err)
@@ -140,15 +144,16 @@ func (e *ECSEnvironment) ConfigureContext(ctx *context.MetricsContext) {
 
 	if e.fluentBitEndpoint != "" {
 		ctx.SetDefaultDimensions(map[string]string{
-			"ServiceName": config.EnvironmentConfig.ServiceName,
+			"ServiceName": env.ServiceName,
 			"ServiceType": e.GetType(),
 		})
 	}
 }
 
 func (e *ECSEnvironment) GetSink() sinks.Sink {
+	env := config.GetConfig()
 	if e.sink == nil {
-		e.sink = sinks.NewAgentSink(e.GetLogGroupName(), config.EnvironmentConfig.LogStreamName, nil)
+		e.sink = sinks.NewAgentSink(e.GetLogGroupName(), env.LogStreamName)
 	}
 	return e.sink
 }

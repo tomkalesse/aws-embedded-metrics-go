@@ -8,7 +8,6 @@ import (
 
 	"github.com/tomkalesse/aws-embedded-metrics-go/metrics/internal/config"
 	"github.com/tomkalesse/aws-embedded-metrics-go/metrics/internal/context"
-	"github.com/tomkalesse/aws-embedded-metrics-go/metrics/internal/serializers"
 )
 
 const (
@@ -30,7 +29,6 @@ type IEndpoint struct {
 
 type AgentSink struct {
 	name          string
-	Serializer    serializers.Serializer
 	Endpoint      Endpoint
 	logGroupName  string
 	logStreamName string
@@ -63,21 +61,16 @@ func parseEndpoint(endpoint string) Endpoint {
 	}
 }
 
-func NewAgentSink(logGroupName, logStreamName string, serializer serializers.Serializer) *AgentSink {
-	if serializer == nil {
-		serializer = &serializers.LogSerializer{}
-	}
-	endpoint := parseEndpoint(config.EnvironmentConfig.AgentEndpoint)
-
+func NewAgentSink(logGroupName, logStreamName string) *AgentSink {
+	env := config.GetConfig()
+	endpoint := parseEndpoint(env.AgentEndpoint)
 	sink := &AgentSink{
 		name:          "AgentSink",
 		logGroupName:  logGroupName,
 		logStreamName: logStreamName,
-		Serializer:    serializer,
 		Endpoint:      endpoint,
 		SocketClient:  getSocketClient(endpoint),
 	}
-
 	log.Printf("Using socket client: %T", sink.SocketClient)
 	return sink
 }
@@ -93,7 +86,10 @@ func (s *AgentSink) Accept(context *context.MetricsContext) error {
 		context.Meta["LogStreamName"] = s.logStreamName
 	}
 
-	events := s.Serializer.Serialize(context)
+	events, err := context.Serialize()
+	if err != nil {
+		return fmt.Errorf("failed to serialize context: %w", err)
+	}
 	log.Printf("Sending %d events to socket.", len(events))
 
 	for _, event := range events {

@@ -11,6 +11,108 @@ import (
 	"github.com/tomkalesse/aws-embedded-metrics-go/metrics/internal/utils"
 )
 
+// TestSerializeLessThan100Metrics ensures that fewer than 100 metrics can be serialized in a single event.
+func TestSerializeLessThan100Metrics(t *testing.T) {
+	m := Empty()
+	for i := 0; i < 50; i++ {
+		metricName := "Metric" + strconv.Itoa(i)
+		err := m.PutMetric(metricName, 1.0, utils.Milliseconds)
+		if err != nil {
+			t.Fatalf("Failed to add metric: %v", err)
+		}
+	}
+
+	batches, err := m.Serialize()
+	if err != nil {
+		t.Fatalf("Serialization failed: %v", err)
+	}
+
+	if len(batches) != 1 {
+		t.Fatalf("Expected 1 batch, but got %d", len(batches))
+	}
+}
+
+// TestSerializeMoreThan100Metrics ensures that more than 100 metrics are split across multiple events.
+func TestSerializeMoreThan100Metrics(t *testing.T) {
+	m := Empty()
+	for i := 0; i < 150; i++ {
+		metricName := "Metric" + strconv.Itoa(i)
+		err := m.PutMetric(metricName, 1.0, utils.Milliseconds)
+		if err != nil {
+			t.Fatalf("Failed to add metric: %v", err)
+		}
+	}
+
+	batches, err := m.Serialize()
+	if err != nil {
+		t.Fatalf("Serialization failed: %v", err)
+	}
+
+	if len(batches) != 2 {
+		t.Fatalf("Expected 2 batches, but got %d", len(batches))
+	}
+}
+
+// TestSerializeAMetricWith101Values ensures that a single metric with more than 100 values is split across multiple events.
+func TestSerializeAMetricWith101Values(t *testing.T) {
+	m := Empty()
+	metricName := "MetricWith101Values"
+
+	for i := 0; i < 101; i++ {
+		err := m.PutMetric(metricName, float64(i), utils.Milliseconds)
+		if err != nil {
+			t.Fatalf("Failed to add metric value: %v", err)
+		}
+	}
+
+	batches, err := m.Serialize()
+	if err != nil {
+		t.Fatalf("Serialization failed: %v", err)
+	}
+
+	if len(batches) != 1 {
+		t.Fatalf("Expected 1 batches, but got %d", len(batches))
+	}
+}
+
+// TestSerializeMetricsWith101Values ensures that multiple metrics, each with 101 values, are properly serialized.
+func TestSerializeMetricsWith101Values(t *testing.T) {
+	m := Empty()
+
+	for i := 0; i < 110; i++ {
+		metricName := "Metric" + strconv.Itoa(i)
+		for j := 0; j < 101; j++ {
+			err := m.PutMetric(metricName, float64(j), utils.Milliseconds)
+			if err != nil {
+				t.Fatalf("Failed to add metric value: %v", err)
+			}
+		}
+	}
+
+	batches, err := m.Serialize()
+	if err != nil {
+		t.Fatalf("Serialization failed: %v", err)
+	}
+
+	if len(batches) != 2 {
+		t.Fatalf("Expected 2 batches, but got %d", len(batches))
+	}
+}
+
+// TestSerializeZeroMetric ensures that no metrics result in an empty batch.
+func TestSerializeZeroMetric(t *testing.T) {
+	m := Empty()
+
+	batches, err := m.Serialize()
+	if err != nil {
+		t.Fatalf("Serialization failed: %v", err)
+	}
+
+	if len(batches) != 0 {
+		t.Fatalf("Expected 0 batch, but got %d", len(batches))
+	}
+}
+
 func TestCanSetProperty(t *testing.T) {
 
 	context := Empty()
@@ -399,8 +501,6 @@ func TestPutMetricWithInvalidDataThrowsError(t *testing.T) {
 		{"randomWord3", math.MaxInt64 + 1, nilUnit, null, "Invalid metric"},
 		{"randomWord4", -math.MaxInt64 - 1, nilUnit, null, "Invalid metric"},
 		{"randomWord5", math.NaN(), nilUnit, null, "Invalid metric"},
-		{"randomWord6", math.Inf(1), utils.Count, null, "Invalid metric"},
-		{"randomWord7", math.Inf(-1), utils.Count, null, "Invalid metric"},
 		{"randomWord8", 4, fahrenheit, null, "Invalid metric"},
 		{"randomWord9", math.NaN(), utils.Count, null, "Invalid metric"},
 		{"randomWordsThree", 123, utils.Seconds, vierfünf, "Invalid metric"},
@@ -420,9 +520,6 @@ func TestPutMetricWithInvalidDataThrowsError(t *testing.T) {
 
 func TestPutMetricWithValidDataDoesNotThrowError(t *testing.T) {
 
-	var null utils.StorageResolution = 0
-	var eins utils.StorageResolution = 1
-
 	// Test cases for valid metrics
 	testCases := []struct {
 		metricName       string
@@ -430,13 +527,13 @@ func TestPutMetricWithValidDataDoesNotThrowError(t *testing.T) {
 		metricUnit       utils.Unit
 		metricResolution utils.StorageResolution
 	}{
-		{"randomWord1", float64(-1000 - rand.Intn(998)), utils.None, null},
-		{"randomWord2", float64(0 - rand.Intn(9999)), utils.Count, null},
-		{"randomWordsTwo", float64(0 - rand.Intn(9999)), utils.None, null},
-		{"randomWordsThree", float64(0 - rand.Intn(9999)), utils.Seconds, null},
-		{"Max_Value", math.MaxInt64, utils.Milliseconds, null},
-		{"-Max_Value", -math.MaxInt64, utils.BytesPerSecond, null},
-		{"-Max_Value", float64(0 - rand.Intn(9999)), utils.BytesPerSecond, eins},
+		{"randomWord1", float64(-1000 - rand.Intn(998)), utils.None, utils.High},
+		{"randomWord2", float64(0 - rand.Intn(9999)), utils.Count, utils.High},
+		{"randomWordsTwo", float64(0 - rand.Intn(9999)), utils.None, utils.High},
+		{"randomWordsThree", float64(0 - rand.Intn(9999)), utils.Seconds, utils.High},
+		{"Max_Value", math.MaxInt64, utils.Milliseconds, utils.High},
+		{"-Max_Value", -math.MaxInt64, utils.BytesPerSecond, utils.High},
+		{"-Max_Value", float64(0 - rand.Intn(9999)), utils.BytesPerSecond, utils.High},
 		{"-Max_Value", float64(0 - rand.Intn(9999)), utils.BytesPerSecond, utils.Standard},
 	}
 

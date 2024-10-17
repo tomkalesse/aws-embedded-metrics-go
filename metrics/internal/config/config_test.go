@@ -15,8 +15,8 @@ func TestSetLogGroupName(t *testing.T) {
 	if env.LogGroupName != expectedValue {
 		t.Errorf("Failed to set log group name, expected %s, got %s", expectedValue, env.LogGroupName)
 	}
-	if EnvironmentConfig.LogGroupName != expectedValue {
-		t.Errorf("Failed to set log group name. expected %s, got %s", expectedValue, EnvironmentConfig.LogGroupName)
+	if env.LogGroupName != expectedValue {
+		t.Errorf("Failed to set log group name. expected %s, got %s", expectedValue, env.LogGroupName)
 	}
 
 }
@@ -29,8 +29,8 @@ func TestSetLogStreamName(t *testing.T) {
 	if env.LogStreamName != expectedValue {
 		t.Errorf("Failed to set log stream name, expected %s, got %s", expectedValue, env.LogStreamName)
 	}
-	if EnvironmentConfig.LogStreamName != expectedValue {
-		t.Errorf("Failed to set log stream name, expected %s, got %s", expectedValue, EnvironmentConfig.LogStreamName)
+	if env.LogStreamName != expectedValue {
+		t.Errorf("Failed to set log stream name, expected %s, got %s", expectedValue, env.LogStreamName)
 	}
 
 }
@@ -43,7 +43,7 @@ func TestEnableDebugLogging(t *testing.T) {
 	if env.DebuggingLoggingEnabled != expectedValue {
 		t.Errorf("Failed to enable debug logging")
 	}
-	if EnvironmentConfig.DebuggingLoggingEnabled != expectedValue {
+	if env.DebuggingLoggingEnabled != expectedValue {
 		t.Errorf("Failed to enable debug logging")
 	}
 
@@ -57,8 +57,8 @@ func TestSetServiceName(t *testing.T) {
 	if env.ServiceName != expectedValue {
 		t.Errorf("Failed to set service name, expected %s, got %s", expectedValue, env.ServiceName)
 	}
-	if EnvironmentConfig.ServiceName != expectedValue {
-		t.Errorf("Failed to set service name, expected %s, got %s", expectedValue, EnvironmentConfig.ServiceName)
+	if env.ServiceName != expectedValue {
+		t.Errorf("Failed to set service name, expected %s, got %s", expectedValue, env.ServiceName)
 	}
 
 }
@@ -71,8 +71,8 @@ func TestSetServiceNameShort(t *testing.T) {
 	if env.ServiceName != expectedValue {
 		t.Errorf("Failed to set service name, expected %s, got %s", expectedValue, env.ServiceName)
 	}
-	if EnvironmentConfig.ServiceName != expectedValue {
-		t.Errorf("Failed to set service name, expected %s, got %s", expectedValue, EnvironmentConfig.ServiceName)
+	if env.ServiceName != expectedValue {
+		t.Errorf("Failed to set service name, expected %s, got %s", expectedValue, env.ServiceName)
 	}
 
 }
@@ -87,8 +87,8 @@ func TestSetServiceNamePrecedence(t *testing.T) {
 	if env.ServiceName != expectedValue2 {
 		t.Errorf("Failed to set service name, expected %s, got %s", expectedValue2, env.ServiceName)
 	}
-	if EnvironmentConfig.ServiceName != expectedValue2 {
-		t.Errorf("Failed to set service name, expected %s, got %s", expectedValue2, EnvironmentConfig.ServiceName)
+	if env.ServiceName != expectedValue2 {
+		t.Errorf("Failed to set service name, expected %s, got %s", expectedValue2, env.ServiceName)
 	}
 
 }
@@ -101,8 +101,8 @@ func TestSetServiceType(t *testing.T) {
 	if env.ServiceType != expectedValue {
 		t.Errorf("Failed to ser service type, expected %s, got %s", expectedValue, env.ServiceType)
 	}
-	if EnvironmentConfig.ServiceType != expectedValue {
-		t.Errorf("Failed to ser service type, expected %s, got %s", expectedValue, EnvironmentConfig.ServiceType)
+	if env.ServiceType != expectedValue {
+		t.Errorf("Failed to ser service type, expected %s, got %s", expectedValue, env.ServiceType)
 	}
 
 }
@@ -115,8 +115,8 @@ func TestSetServiceTypeShort(t *testing.T) {
 	if env.ServiceType != expectedValue {
 		t.Errorf("Failed to ser service type, expected %s, got %s", expectedValue, env.ServiceType)
 	}
-	if EnvironmentConfig.ServiceType != expectedValue {
-		t.Errorf("Failed to ser service type, expected %s, got %s", expectedValue, EnvironmentConfig.ServiceType)
+	if env.ServiceType != expectedValue {
+		t.Errorf("Failed to ser service type, expected %s, got %s", expectedValue, env.ServiceType)
 	}
 
 }
@@ -131,8 +131,8 @@ func TestSetServiceTypePrecedence(t *testing.T) {
 	if env.ServiceType != expectedValue2 {
 		t.Errorf("Failed to ser service type, expected %s, got %s", expectedValue2, env.ServiceType)
 	}
-	if EnvironmentConfig.ServiceType != expectedValue2 {
-		t.Errorf("Failed to ser service type, expected %s, got %s", expectedValue2, EnvironmentConfig.ServiceType)
+	if env.ServiceType != expectedValue2 {
+		t.Errorf("Failed to ser service type, expected %s, got %s", expectedValue2, env.ServiceType)
 	}
 
 }
@@ -145,8 +145,8 @@ func TestSetAgentEndpoint(t *testing.T) {
 	if env.AgentEndpoint != expectedValue {
 		t.Errorf("Failed to set agent endpoint, expected %s, got %s", expectedValue, env.AgentEndpoint)
 	}
-	if EnvironmentConfig.AgentEndpoint != expectedValue {
-		t.Errorf("Failed to set agent endpoint, expected %s, got %s", expectedValue, EnvironmentConfig.AgentEndpoint)
+	if env.AgentEndpoint != expectedValue {
+		t.Errorf("Failed to set agent endpoint, expected %s, got %s", expectedValue, env.AgentEndpoint)
 	}
 
 }
@@ -159,8 +159,8 @@ func TestSetEnvironment(t *testing.T) {
 	if env.EnvironmentOverride != utils.Local {
 		t.Errorf("Failed to set environment, expected %s, got %s", expectedValue, env.EnvironmentOverride)
 	}
-	if EnvironmentConfig.EnvironmentOverride != utils.Local {
-		t.Errorf("Failed to set environment, expected %s, got %s", expectedValue, EnvironmentConfig.EnvironmentOverride)
+	if env.EnvironmentOverride != utils.Local {
+		t.Errorf("Failed to set environment, expected %s, got %s", expectedValue, env.EnvironmentOverride)
 	}
 
 }
@@ -173,8 +173,8 @@ func TestSetEnvironmentDefault(t *testing.T) {
 	if env.EnvironmentOverride != utils.Unknown {
 		t.Errorf("Failed to set environment, expected %s, got %s", expectedValue, env.EnvironmentOverride)
 	}
-	if EnvironmentConfig.EnvironmentOverride != utils.Unknown {
-		t.Errorf("Failed to set environment, expected %s, got %s", expectedValue, EnvironmentConfig.EnvironmentOverride)
+	if env.EnvironmentOverride != utils.Unknown {
+		t.Errorf("Failed to set environment, expected %s, got %s", expectedValue, env.EnvironmentOverride)
 	}
 
 }
@@ -187,8 +187,8 @@ func TestSetEnvironmentRandom(t *testing.T) {
 	if env.EnvironmentOverride != utils.Unknown {
 		t.Errorf("Failed to set environment, expected %s, got %s", expectedValue, env.EnvironmentOverride)
 	}
-	if EnvironmentConfig.EnvironmentOverride != utils.Unknown {
-		t.Errorf("Failed to set environment, expected %s, got %s", expectedValue, EnvironmentConfig.EnvironmentOverride)
+	if env.EnvironmentOverride != utils.Unknown {
+		t.Errorf("Failed to set environment, expected %s, got %s", expectedValue, env.EnvironmentOverride)
 	}
 
 }
@@ -200,8 +200,8 @@ func TestDefaultNamespace(t *testing.T) {
 	if env.Namespace != expectedValue {
 		t.Errorf("Failed to set environment, expected %s, got %s", expectedValue, env.Namespace)
 	}
-	if EnvironmentConfig.Namespace != expectedValue {
-		t.Errorf("Failed to set environment, expected %s, got %s", expectedValue, EnvironmentConfig.Namespace)
+	if env.Namespace != expectedValue {
+		t.Errorf("Failed to set environment, expected %s, got %s", expectedValue, env.Namespace)
 	}
 
 }
@@ -214,8 +214,8 @@ func TestSetNamespace(t *testing.T) {
 	if env.Namespace != expectedValue {
 		t.Errorf("Failed to set environment, expected %s, got %s", expectedValue, env.Namespace)
 	}
-	if EnvironmentConfig.Namespace != expectedValue {
-		t.Errorf("Failed to set environment, expected %s, got %s", expectedValue, EnvironmentConfig.Namespace)
+	if env.Namespace != expectedValue {
+		t.Errorf("Failed to set environment, expected %s, got %s", expectedValue, env.Namespace)
 	}
 
 }

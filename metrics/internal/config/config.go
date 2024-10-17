@@ -57,7 +57,7 @@ type Config struct {
 	Namespace               string
 }
 
-var EnvironmentConfig = Config{
+var environmentConfig = Config{
 	DebuggingLoggingEnabled: tryGetEnvVariableAsBoolean(ConfigKeys.ENABLE_DEBUG_LOGGING, false),
 	ServiceName:             getEnvVar(ConfigKeys.SERVICE_NAME),
 	ServiceType:             getEnvVar(ConfigKeys.SERVICE_TYPE),
@@ -69,7 +69,7 @@ var EnvironmentConfig = Config{
 }
 
 func GetConfig() Config {
-	EnvironmentConfig = Config{
+	environmentConfig = Config{
 		DebuggingLoggingEnabled: tryGetEnvVariableAsBoolean(ConfigKeys.ENABLE_DEBUG_LOGGING, false),
 		ServiceName:             getEnvVar(ConfigKeys.SERVICE_NAME),
 		ServiceType:             getEnvVar(ConfigKeys.SERVICE_TYPE),
@@ -79,7 +79,7 @@ func GetConfig() Config {
 		EnvironmentOverride:     getEnvironmentFromOverride(ConfigKeys.ENVIRONMENT_OVERRIDE),
 		Namespace:               getNamespace(ConfigKeys.NAMESPACE),
 	}
-	return EnvironmentConfig
+	return environmentConfig
 }
 
 func getEnvVar(key string) string {

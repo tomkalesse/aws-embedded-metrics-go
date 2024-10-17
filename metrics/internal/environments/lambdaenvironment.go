@@ -45,7 +45,7 @@ func (e *LambdaEnvironment) ConfigureContext(ctx *context.MetricsContext) {
 
 func (e *LambdaEnvironment) GetSink() sinks.Sink {
 	if e.sink == nil {
-		e.sink = sinks.NewConsoleSink(nil)
+		e.sink = sinks.NewConsoleSink()
 	}
 	return e.sink
 }

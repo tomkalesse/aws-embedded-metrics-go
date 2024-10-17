@@ -20,12 +20,12 @@ type MetricsLogger struct {
 }
 
 func CreateMetricsLogger() MetricsLogger {
-	context := context.Empty()
+	ctx := context.Empty()
 	environment, err := environments.ResolveEnvironment()
 	if err != nil {
 		log.Println("Error resolving environment: " + err.Error())
 	}
-	return MetricsLogger{context, environment, true}
+	return MetricsLogger{ctx, environment, true}
 }
 
 func (l *MetricsLogger) Flush() {
@@ -106,12 +106,12 @@ func (l *MetricsLogger) New() *MetricsLogger {
 }
 
 func (l *MetricsLogger) configureContextForEnvironment(context *context.MetricsContext, environment environments.Environment) {
-
-	serviceName := config.EnvironmentConfig.ServiceName
+	env := config.GetConfig()
+	serviceName := env.ServiceName
 	if serviceName == "" {
 		serviceName = environment.GetName()
 	}
-	serviceType := config.EnvironmentConfig.ServiceType
+	serviceType := env.ServiceType
 	if serviceType == "" {
 		serviceType = environment.GetType()
 	}

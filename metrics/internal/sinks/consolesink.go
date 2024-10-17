@@ -1,30 +1,27 @@
 package sinks
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/tomkalesse/aws-embedded-metrics-go/metrics/internal/context"
-	"github.com/tomkalesse/aws-embedded-metrics-go/metrics/internal/serializers"
 )
 
 type ConsoleSink struct {
-	name       string
-	Serializer serializers.Serializer
+	name string
 }
 
-func NewConsoleSink(serializer serializers.Serializer) *ConsoleSink {
-	if serializer == nil {
-		serializer = &serializers.LogSerializer{}
-	}
-
+func NewConsoleSink() *ConsoleSink {
 	return &ConsoleSink{
-		name:       "ConsoleSink",
-		Serializer: serializer,
+		name: "ConsoleSink",
 	}
 }
 
 func (s *ConsoleSink) Accept(context *context.MetricsContext) error {
-	events := s.Serializer.Serialize(context)
+	events, err := context.Serialize()
+	if err != nil {
+		return fmt.Errorf("failed to serialize context: %w", err)
+	}
 	for _, event := range events {
 		log.Println(event)
 	}

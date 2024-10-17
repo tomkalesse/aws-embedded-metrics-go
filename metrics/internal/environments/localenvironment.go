@@ -17,24 +17,27 @@ func (e *LocalEnvironment) Probe() bool {
 }
 
 func (e *LocalEnvironment) GetName() string {
-	if config.EnvironmentConfig.ServiceName == "" {
+	env := config.GetConfig()
+	if env.ServiceName == "" {
 		log.Println("Unknown ServiceName.")
 		return "Unknown"
 	}
-	return config.EnvironmentConfig.ServiceName
+	return env.ServiceName
 }
 
 func (e *LocalEnvironment) GetType() string {
-	if config.EnvironmentConfig.ServiceType == "" {
+	env := config.GetConfig()
+	if env.ServiceType == "" {
 		log.Println("Unknown ServiceType.")
 		return "Unknown"
 	}
-	return config.EnvironmentConfig.ServiceType
+	return env.ServiceType
 }
 
 func (e *LocalEnvironment) GetLogGroupName() string {
-	if config.EnvironmentConfig.LogGroupName != "" {
-		return config.EnvironmentConfig.LogGroupName
+	env := config.GetConfig()
+	if env.LogGroupName != "" {
+		return env.LogGroupName
 	}
 	return e.GetName() + "-metrics"
 }
@@ -45,7 +48,7 @@ func (e *LocalEnvironment) ConfigureContext(ctx *context.MetricsContext) {
 
 func (e *LocalEnvironment) GetSink() sinks.Sink {
 	if e.sink == nil {
-		e.sink = sinks.NewConsoleSink(nil)
+		e.sink = sinks.NewConsoleSink()
 	}
 	return e.sink
 }
