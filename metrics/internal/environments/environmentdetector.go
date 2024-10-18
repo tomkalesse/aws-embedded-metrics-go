@@ -1,6 +1,7 @@
 package environments
 
 import (
+	"errors"
 	"log"
 	"sync"
 
@@ -25,21 +26,21 @@ var environments = []Environment{
 var environment Environment
 var once sync.Once
 
-func getEnvironmentFromOverride() Environment {
+func getEnvironmentFromOverride() (Environment, error) {
 	env := config.GetConfig()
 	switch env.EnvironmentOverride {
 	case utils.Agent:
-		return defaultEnvironment
+		return defaultEnvironment, nil
 	case utils.EC2:
-		return ec2Environment
+		return ec2Environment, nil
 	case utils.Lambda:
-		return lambdaEnvironment
+		return lambdaEnvironment, nil
 	case utils.ECS:
-		return ecsEnvironment
+		return NewECSEnvironment()
 	case utils.Local:
-		return localEnvironment
+		return localEnvironment, nil
 	default:
-		return nil
+		return nil, errors.New("not found")
 	}
 }
 
@@ -59,24 +60,26 @@ func discoverEnvironment() (Environment, error) {
 
 func ResolveEnvironment() (Environment, error) {
 	once.Do(func() {
+		var err error
 		log.Println("Resolving environment")
 		env := config.GetConfig()
 		if env.EnvironmentOverride != "" {
 			log.Printf("Environment override supplied: %s", env.EnvironmentOverride)
-			environment = getEnvironmentFromOverride()
-			if environment != nil {
+			environment, err = getEnvironmentFromOverride()
+			if err == nil {
 				return
 			}
 			log.Printf("Invalid environment provided. Falling back to auto-discovery: %s", env.EnvironmentOverride)
 		}
-
-		var err error
 		environment, err = discoverEnvironment()
 		if err != nil {
 			log.Printf("Failed to discover environment: %v", err)
 		}
 	})
 
+	if environment == nil {
+		return nil, errors.New("failed to resolve environment")
+	}
 	return environment, nil
 }
 

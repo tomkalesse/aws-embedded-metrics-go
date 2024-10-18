@@ -1,14 +1,13 @@
 package metrics
 
 import (
+	"os"
 	"testing"
-
-	"github.com/tomkalesse/aws-embedded-metrics-go/metrics/internal/config"
 )
 
 func TestIntegration(t *testing.T) {
 
-	config.EnvironmentConfig.EnvironmentOverride = "Local"
+	os.Setenv("ENVIRONMENT", "ECS")
 
 	logger := CreateMetricsLogger()
 	if 2 == 3 {
@@ -16,5 +15,7 @@ func TestIntegration(t *testing.T) {
 	}
 
 	logger.PutMetric("test", 1.0, Count, StorageResolutionStandard)
+	logger.PutMetric("test", 2.0, Count, StorageResolutionStandard)
+	logger.PutMetric("test1", 1.0, Count, StorageResolutionStandard)
 	logger.Flush()
 }

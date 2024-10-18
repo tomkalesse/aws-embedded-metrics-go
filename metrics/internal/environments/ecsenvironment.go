@@ -2,6 +2,7 @@ package environments
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -57,6 +58,14 @@ func formatImageName(imageName string) string {
 	return parts[len(parts)-1]
 }
 
+func NewECSEnvironment() (*ECSEnvironment, error) {
+	ecs := &ECSEnvironment{}
+	if !ecs.Probe() {
+		return nil, errors.New("failed to probe ECS environment")
+	}
+	return ecs, nil
+}
+
 func (e *ECSEnvironment) Probe() bool {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
@@ -81,13 +90,13 @@ func (e *ECSEnvironment) Probe() bool {
 	}
 
 	resp, err := http.Get(u.String())
-	if err != nil {
+	if err != nil || resp.StatusCode != http.StatusOK {
 		log.Println("Failed to collect ECS Container Metadata:", err)
 		return false
 	}
 	defer resp.Body.Close()
 
-	if err := json.NewDecoder(resp.Body).Decode(&e.metadata); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(e.metadata); err != nil {
 		log.Println("Error decoding ECS metadata:", err)
 		return false
 	}
