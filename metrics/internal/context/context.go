@@ -72,7 +72,6 @@ func (m *MetricsContext) SetTimestamp(timestamp int64) error {
 }
 
 func (m *MetricsContext) SetDefaultDimensions(dimensions map[string]string) {
-	log.Println("Received default dimensions")
 	m.defaultDimensions = dimensions
 }
 

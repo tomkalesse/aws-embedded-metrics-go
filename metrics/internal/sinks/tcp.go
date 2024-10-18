@@ -59,7 +59,6 @@ func (c *TcpClient) SendMessage(message []byte) error {
 		log.Printf("Failed to send message: %v", err)
 		return err
 	}
-	log.Println("Message sent successfully via TCP.")
 	return nil
 }
 

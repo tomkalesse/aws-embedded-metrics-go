@@ -32,7 +32,7 @@ func getEnvironmentFromOverride() (Environment, error) {
 	case utils.Agent:
 		return defaultEnvironment, nil
 	case utils.EC2:
-		return ec2Environment, nil
+		return NewEC2Environment()
 	case utils.Lambda:
 		return lambdaEnvironment, nil
 	case utils.ECS:

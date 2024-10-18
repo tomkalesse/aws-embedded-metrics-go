@@ -90,10 +90,9 @@ func (s *AgentSink) Accept(context *context.MetricsContext) error {
 	if err != nil {
 		return fmt.Errorf("failed to serialize context: %w", err)
 	}
-	log.Printf("Sending %d events to socket.", len(events))
-
 	for _, event := range events {
 		message := []byte(event + "\n")
+		log.Printf("Sending message: %s", message)
 		err := s.SocketClient.SendMessage(message)
 		if err != nil {
 			return fmt.Errorf("failed to send message: %w", err)

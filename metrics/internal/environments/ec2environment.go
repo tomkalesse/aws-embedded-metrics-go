@@ -2,6 +2,7 @@ package environments
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -35,7 +36,14 @@ type EC2Environment struct {
 	mutex    sync.Mutex
 }
 
-// Probe fetches the token and EC2 metadata to determine if the environment is an EC2 instance.
+func NewEC2Environment() (*EC2Environment, error) {
+	ec2 := &EC2Environment{}
+	if !ec2.Probe() {
+		return nil, errors.New("failed to probe EC2 environment")
+	}
+	return ec2, nil
+}
+
 func (e *EC2Environment) Probe() bool {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
