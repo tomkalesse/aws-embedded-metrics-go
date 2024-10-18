@@ -179,10 +179,13 @@ func (m *MetricsContext) CreateCopyWithContext(preserveDimensions ...bool) Metri
 	return MetricsContext{
 		Namespace:                  m.Namespace,
 		Properties:                 m.Properties,
+		Metrics:                    make(map[string]MetricsValue),
+		Meta:                       map[string]any{"Timestamp": resolveMetaTimestamp(0)},
 		dimensions:                 m.dimensions,
 		defaultDimensions:          m.defaultDimensions,
 		shouldUseDefaultDimensions: pD,
 		timestamp:                  m.timestamp,
+		metricNameAndResolutionMap: make(map[string]utils.StorageResolution),
 	}
 }
 
