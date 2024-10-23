@@ -197,6 +197,7 @@ func resolveMetaTimestamp(timestamp int64) int64 {
 }
 
 func (m *MetricsContext) Serialize() ([]string, error) {
+
 	var dimensionKeys [][]string
 	dimensionProperties := make(map[string]string)
 
@@ -231,6 +232,11 @@ func (m *MetricsContext) Serialize() ([]string, error) {
 
 	eventBatches := []string{}
 	currentBody := createBody()
+
+	// adding dimensionProperties to the current body
+	for k, v := range dimensionProperties {
+		currentBody[k] = v
+	}
 
 	// Function to serialize and add the current body to the batches
 	serializeCurrentBody := func() {
