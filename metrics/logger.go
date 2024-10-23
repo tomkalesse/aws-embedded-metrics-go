@@ -40,17 +40,15 @@ func (l *MetricsLogger) Flush() {
 	l.context = l.context.CreateCopyWithContext(l.flushPreserveDimensions)
 }
 
-func (l *MetricsLogger) SetProperty(key string, value string) MetricsLogger {
+func (l *MetricsLogger) SetProperty(key string, value string) {
 	l.context.SetProperty(key, value)
-	return *l
 }
 
-func (l *MetricsLogger) PutDimensions(dimensions map[string]string) MetricsLogger {
+func (l *MetricsLogger) PutDimensions(dimensions map[string]string) {
 	l.context.PutDimensions(dimensions)
-	return *l
 }
 
-func (l *MetricsLogger) SetDimensions(dimensionSetOrSets interface{}, useDefault ...bool) MetricsLogger {
+func (l *MetricsLogger) SetDimensions(dimensionSetOrSets interface{}, useDefault ...bool) {
 	defaultValue := false
 	if len(useDefault) > 0 {
 		defaultValue = useDefault[0]
@@ -70,39 +68,33 @@ func (l *MetricsLogger) SetDimensions(dimensionSetOrSets interface{}, useDefault
 	default:
 		log.Println("Invalid type for dimensionSetOrSets")
 	}
-	return *l
 }
 
-func (l *MetricsLogger) ResetDimensions(useDefault bool) MetricsLogger {
+func (l *MetricsLogger) ResetDimensions(useDefault bool) {
 	l.context.ResetDimensions(useDefault)
-	return *l
 }
 
-func (l *MetricsLogger) PutMetric(key string, value float64, unit utils.Unit, storageResolution utils.StorageResolution) MetricsLogger {
+func (l *MetricsLogger) PutMetric(key string, value float64, unit utils.Unit, storageResolution utils.StorageResolution) {
 	err := l.context.PutMetric(key, value, unit, storageResolution)
 	if err != nil {
 		slogger.Error(err.Error())
 	}
-	return *l
 }
 
-func (l *MetricsLogger) SetNamespace(value string) MetricsLogger {
+func (l *MetricsLogger) SetNamespace(value string) {
 	l.context.SetNamespace(value)
-	return *l
 }
 
-func (l *MetricsLogger) SetTimestamp(value int64) MetricsLogger {
+func (l *MetricsLogger) SetTimestamp(value int64) {
 	l.context.SetTimestamp(value)
-	return *l
 }
 
 func (l *MetricsLogger) New() *MetricsLogger {
-	m := context.MetricsContext{}
 	environment, err := environments.ResolveEnvironment()
 	if err != nil {
 		log.Println("Error resolving environment: " + err.Error())
 	}
-	return &MetricsLogger{m.CreateCopyWithContext(true), environment, true}
+	return &MetricsLogger{l.context.CreateCopyWithContext(true), environment, true}
 }
 
 func (l *MetricsLogger) configureContextForEnvironment(context *context.MetricsContext, environment environments.Environment) {

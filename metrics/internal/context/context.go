@@ -191,7 +191,7 @@ func (m *MetricsContext) CreateCopyWithContext(preserveDimensions ...bool) Metri
 
 func resolveMetaTimestamp(timestamp int64) int64 {
 	if timestamp == 0 {
-		return time.Now().Unix()
+		return time.Now().Unix() * 1000
 	}
 	return timestamp
 }
