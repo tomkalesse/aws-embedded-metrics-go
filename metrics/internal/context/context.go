@@ -253,10 +253,13 @@ func (m *MetricsContext) Serialize() ([]string, error) {
 	for key, metric := range m.Metrics {
 		// Add metrics in batches, ensuring they don’t exceed limits
 		for i := 0; i < len(metric.Values); i += utils.MAX_VALUES_PER_METRIC {
-			end := int(math.Min(float64(i+utils.MAX_VALUES_PER_METRIC), float64(len(metric.Values))))
-			valueSlice := metric.Values[i:end]
-
-			currentBody[key] = valueSlice
+			if len(metric.Values) == 1 {
+				currentBody[key] = metric.Values[0]
+			} else {
+				end := int(math.Min(float64(i+utils.MAX_VALUES_PER_METRIC), float64(len(metric.Values))))
+				valueSlice := metric.Values[i:end]
+				currentBody[key] = valueSlice
+			}
 			metricObj := map[string]interface{}{
 				"Name":              key,
 				"Unit":              string(metric.Unit),
